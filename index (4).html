@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ohio/Indiana Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E8ECEF; --surface:#FFFFFF; --surface-2:#F4F6F8; --ink:#1B2530; --muted:#5A6773; --line:#CDD5DC;
+  --accent:#1F4FA3; --accent-ink:#FFFFFF; --warn:#A8501A; --warn-bg:#FCEBDD; --today:#FFF3C4; --off:#6B7682;
+  --sans:"Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --cond:"Barlow Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11171C; --surface:#1A2229; --surface-2:#151C22; --ink:#E4EAEF; --muted:#94A2AE; --line:#2C3843;
+    --accent:#86AAF0; --accent-ink:#0E1620; --warn:#F2A46B; --warn-bg:#3A2618; --today:#3A3418; --off:#8794A0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11171C; --surface:#1A2229; --surface-2:#151C22; --ink:#E4EAEF; --muted:#94A2AE; --line:#2C3843;
+  --accent:#86AAF0; --accent-ink:#0E1620; --warn:#F2A46B; --warn-bg:#3A2618; --today:#3A3418; --off:#8794A0;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.4 var(--sans);display:flex;flex-direction:column}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Header */
+.top{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.brand{font:700 24px/1 var(--cond);letter-spacing:.005em;margin-right:6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:5px 12px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.nav{display:flex;align-items:center;gap:4px}
+.nav .lbl{font:600 18px var(--cond);min-width:11.5em;text-align:center}
+.ib{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:4px 10px;min-height:32px}
+.ib:hover{border-color:var(--muted)}
+.ib.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.spacer{flex:1}
+.top select{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:4px 8px;min-height:32px}
+.chk{display:inline-flex;gap:6px;align-items:center;color:var(--muted);font-size:14px}
+.sync{font-size:13px;color:var(--muted);white-space:nowrap}
+.sync.bad{color:var(--warn)}
+
+/* Layout */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:270px minmax(0,1fr)}
+.rail{border-right:1px solid var(--line);background:var(--surface-2);display:flex;flex-direction:column;min-height:0}
+.rail .search{padding:12px 12px 6px}
+.rail .search input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px 9px}
+#railBody{flex:1;overflow:auto;padding:4px 12px 16px}
+main{overflow:auto;padding:16px 18px 80px;min-width:0}
+@media (max-width:780px){
+  body{height:auto;min-height:100%}
+  .app{display:block}
+  .rail{border-right:0;border-bottom:1px solid var(--line)}
+  #railBody{max-height:38vh}
+  main{overflow:visible;padding:12px 12px 90px}
+  .nav .lbl{min-width:0}
+}
+.rail h2{font:600 15px var(--cond);color:var(--muted);margin:14px 0 6px;display:flex;justify-content:space-between}
+.rail .stack{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.note{font-size:13px;color:var(--muted);margin:2px 0 8px}
+
+/* Chips: people are round magnets, trucks are unit tags */
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;
+  padding:2px 10px 2px 2px;cursor:grab;font-size:14px;line-height:1.2;touch-action:manipulation;user-select:none;-webkit-user-select:none;max-width:100%;text-align:left}
+.chip .ini{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--c,var(--muted));color:#fff;font:600 12px var(--cond);letter-spacing:.02em}
+.chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .cdl{font:600 11px var(--cond);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 3px}
+.chip.truck{border-radius:4px;border:1.5px solid var(--ink);padding:3px 8px 3px 9px;box-shadow:inset 4px 0 0 var(--c,transparent)}
+.chip.truck .unit{font:700 15px/1 var(--cond);letter-spacing:.02em}
+.chip.truck .kind{font-size:12px;color:var(--muted)}
+.chip.truck svg{width:16px;height:16px;flex:none;opacity:.7}
+.chip.sel{outline:2.5px solid var(--accent);outline-offset:2px}
+.chip.lifted{opacity:.35}
+.chip:hover{border-color:var(--muted)}
+.chip.truck:hover{border-color:var(--ink)}
+.ticks{display:inline-flex;gap:2px;margin-left:4px}
+.ticks i{width:7px;height:12px;border-radius:2px;border:1px solid var(--line);background:transparent}
+.ticks i.on{background:var(--tc);border-color:var(--tc)}
+.ticks i.off{background:repeating-linear-gradient(135deg,var(--off) 0 2px,transparent 2px 4px);border-color:var(--off)}
+.ghost{position:fixed;pointer-events:none;z-index:1000;transform:translate(-30%,-70%) rotate(-3deg);box-shadow:0 8px 20px rgba(0,0,0,.28)}
+body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
+
+/* Zones */
+.zone{transition:background-color .12s}
+.zone.hot{background:color-mix(in srgb,var(--accent) 14%,var(--surface))!important;box-shadow:inset 0 0 0 2px var(--accent)}
+body.picking .zone{cursor:pointer}
+body.picking .zone:hover{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+
+/* Week grid */
+.wrap{overflow-x:auto;padding-bottom:4px}
+.wk{display:grid;grid-template-columns:170px repeat(var(--n),minmax(160px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;min-width:calc(170px + var(--n) * 160px)}
+.wk>*{background:var(--surface)}
+.corner{background:var(--surface-2)}
+.dh{border:0;text-align:left;padding:8px 10px;background:var(--surface-2);display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline}
+.dh:hover{background:color-mix(in srgb,var(--accent) 8%,var(--surface-2))}
+.dh .dow{font:700 18px/1 var(--cond)}
+.dh .dt{font:500 16px/1 var(--cond);color:var(--muted)}
+.dh .open{flex-basis:100%;font-size:12.5px;color:var(--muted)}
+.dh.today{background:var(--today)}
+.crewlab{padding:10px 10px 10px 12px;border-left:6px solid var(--c);display:flex;flex-direction:column;justify-content:center}
+.crewlab b{font:700 18px/1.1 var(--cond)}
+.crewlab span{font-size:13px;color:var(--muted)}
+.crewlab.offrow{background:var(--surface-2)}
+.cell{padding:6px;min-height:84px;display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
+.cell.todaycol{background:color-mix(in srgb,var(--today) 45%,var(--surface))}
+.cell.offrow{background:var(--surface-2)}
+.cell .job{flex-basis:100%;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .job b{color:var(--ink);font-weight:600}
+.cell .chip{font-size:13px}
+.warn{flex-basis:100%;font-size:12px;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:2px 6px}
+
+/* Day board */
+.dayhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:0 0 14px}
+.dayhead h1{margin:0;font:700 30px/1 var(--cond)}
+.dayhead p{margin:0;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--c);border-radius:6px;display:flex;flex-direction:column}
+.card header{display:flex;align-items:baseline;gap:8px;padding:10px 12px 6px}
+.card h3{margin:0;font:700 22px/1.1 var(--cond)}
+.card header span{color:var(--muted);font-size:13px}
+.fields{display:grid;grid-template-columns:1fr 104px;gap:6px 8px;padding:0 12px 8px}
+.fields label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:2px}
+.fields .wide{grid-column:1/-1}
+.fields input{border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:5px 7px;font-size:14px;color:var(--ink);min-width:0}
+.fields input:disabled{background:transparent;border-style:dashed}
+.card .warn{margin:0 12px 6px}
+.card .zone{min-height:96px;padding:10px 12px 12px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;border-radius:0 0 6px 6px}
+.card.off{background:var(--surface-2)}
+.empty-hint{color:var(--muted);font-size:13px;align-self:center}
+
+.empty{max-width:520px;margin:40px auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:22px 24px}
+.empty h2{margin:0 0 6px;font:700 24px var(--cond)}
+.empty p{margin:0 0 14px;color:var(--muted)}
+
+/* Pick bar */
+.pickbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--surface);
+  border-radius:8px;padding:8px 8px 8px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
+.pickbar button{background:var(--surface);color:var(--ink);border:0;border-radius:5px;padding:5px 10px;font-weight:600}
+.pickbar[hidden]{display:none}
+
+/* Dialogs */
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:0;width:min(760px,calc(100% - 24px));max-height:calc(100% - 40px)}
+dialog::backdrop{background:rgba(10,15,20,.45)}
+.dlg-h{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}
+.dlg-h h2{margin:0;font:700 22px var(--cond);flex:1}
+.dlg-b{padding:14px 18px 18px}
+.tabs{display:flex;gap:4px;margin-bottom:12px}
+.tabs button{border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:5px 12px;font-weight:600}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.mrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.mrow input[type=text]{border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:5px 8px;min-width:0;flex:1 1 140px}
+.mrow .sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);background:var(--c);flex:none;padding:0}
+.mrow .sm{border:1px solid var(--line);background:var(--surface);border-radius:5px;padding:3px 8px;min-height:30px}
+.mrow .del.armed{background:var(--warn);color:#fff;border-color:var(--warn)}
+.addrow{display:flex;gap:6px;margin-top:12px}
+.addrow input{flex:1;border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:6px 9px}
+details.bulk{margin-top:10px}
+details.bulk summary{cursor:pointer;color:var(--muted);font-size:14px}
+details.bulk textarea{width:100%;min-height:110px;margin:8px 0;border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:8px}
+.ask .dlg-b p{margin:0 0 16px}
+.ask .btns{display:flex;gap:8px;justify-content:flex-end}
+.pair{display:inline-flex;align-items:center;gap:3px;padding:2px 3px 2px 2px;border-radius:7px;background:color-mix(in srgb,var(--c) 16%,transparent);max-width:100%}
+.pair .chip.truck{box-shadow:none}
+.chip.truck.hot{outline:2.5px dashed var(--accent);outline-offset:2px}
+.crewlab small{display:none;font-size:11.5px;color:var(--accent);margin-top:3px}
+body.picking .crewlab small,body.dragging .crewlab small{display:block}
+body.picking .crewlab.zone{cursor:pointer}
+.mrow select{border:1px solid var(--line);background:var(--surface-2);border-radius:5px;padding:5px 6px;max-width:190px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<header class="top" id="top"></header>
+<div class="app">
+  <aside class="rail" aria-label="Roster">
+    <div class="search"><label class="sr" for="q">Find a person or truck</label><input id="q" type="search" placeholder="Find a person or truck"></div>
+    <div id="railBody" class="zone" data-zone></div>
+  </aside>
+  <main id="main"><p class="note">Loading schedule…</p></main>
+</div>
+<div class="pickbar" id="pickbar" hidden></div>
+
+<dialog id="manage">
+  <div class="dlg-h"><h2>Jobs, people and trucks</h2><button class="ib" data-close>Done</button></div>
+  <div class="dlg-b" id="manageBody"></div>
+</dialog>
+<dialog id="ask" class="ask">
+  <div class="dlg-b"><p id="askMsg"></p><div class="btns"><button class="ib" value="no" id="askNo">Cancel</button><button class="ib primary" id="askYes">OK</button></div></div>
+</dialog>
+<datalist id="roles"><option>Foreman</option><option>Operator</option><option>Technician</option><option>Laborer</option><option>Driver</option></datalist>
+<datalist id="kinds"><option>Vac truck</option><option>Jetter</option><option>Combo truck</option><option>Camera van</option><option>Pickup</option><option>Box truck</option><option>Trailer</option></datalist>
+<datalist id="bases"></datalist>
+
+<script>
+(() => {
+/* ====== SETUP: paste your Google Apps Script web app URL between the quotes ====== */
+const API_URL = 'https://script.google.com/macros/s/AKfycby_Ky2h3gRl5mQDCv7YGui160R6oKdIuBRrqMTKyc2TjS8qY3SQwMo268QGNDF0LUWXTg/exec';
+/* ================================================================================ */
+const PALETTE = ['#2F6FD0','#2E9A5B','#D9822B','#8A5CC7','#1C9AA6','#C8473F','#A8861A','#5F6B76'];
+const TRUCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h11v10H2zM13 10h5l3 3v3h-8z"/><circle cx="6" cy="17.5" r="1.8" fill="currentColor"/><circle cx="17" cy="17.5" r="1.8" fill="currentColor"/></svg>';
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (s,n) => { const d = parse(s); d.setDate(d.getDate()+n); return ymd(d); };
+const monday = s => { const d = parse(s); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return ymd(d); };
+const fmt = (s,o) => parse(s).toLocaleDateString(undefined, o);
+const isWeekend = s => { const g = parse(s).getDay(); return g === 0 || g === 6; };
+const clone = o => JSON.parse(JSON.stringify(o ?? {}));
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-5);
+const TODAY = ymd(new Date());
+const ftime = t => { if (!t) return ''; const [h,m] = t.split(':').map(Number); return new Date(2000,0,1,h,m).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); };
+const initials = n => { const p = String(n||'?').trim().split(/\s+/); return ((p[0]||'?')[0] + (p.length>1 ? p[p.length-1][0] : '')).toUpperCase(); };
+const shortName = n => { const p = String(n||'').trim().split(/\s+/); return p.length>1 ? `${p[0]} ${p[p.length-1][0]}.` : (p[0]||'?'); };
+
+/* ---------- state ---------- */
+const prefs = (() => { try { return JSON.parse(localStorage.getItem('crew-sched-prefs') || '{}'); } catch { return {}; } })();
+const S = {
+  crews:{}, people:{}, trucks:{}, days:{}, exists:{},
+  loaded:{crews:false, people:false, trucks:false},
+  view: prefs.view === 'day' ? 'day' : 'week',
+  date: TODAY, weekend: !!prefs.weekend, base: prefs.base || 'all',
+  sel:null, q:'', readOnly:false, mtab:'crews'
+};
+function savePrefs(){ try { localStorage.setItem('crew-sched-prefs', JSON.stringify({view:S.view, weekend:S.weekend, base:S.base})); } catch {} }
+
+let mode = 'connecting', syncN = 0, syncErr = '', netErr = '', gateMsg = '';
+let teamCode = (() => { try { return localStorage.getItem('sched-team-code') || ''; } catch { return ''; } })();
+const OFF = {id:'off', name:'Off / shop', base:''};
+
+const crewList = () => Object.values(S.crews).sort((a,b) => (a.order||0)-(b.order||0) || String(a.name).localeCompare(b.name));
+const bases = () => [...new Set(crewList().map(c => (c.base||'').trim()).filter(Boolean))].sort();
+const visibleCrews = () => crewList().filter(c => S.base === 'all' || (c.base||'').trim() === S.base);
+const peopleList = () => Object.values(S.people).sort((a,b) => String(a.name).localeCompare(b.name));
+const truckList = () => Object.values(S.trucks).sort((a,b) => String(a.name).localeCompare(b.name, undefined, {numeric:true}));
+const crewColor = id => id === 'off' ? 'var(--off)' : (S.crews[id]?.color || PALETTE[0]);
+const weekDays = () => { const m = monday(S.date); return Array.from({length: S.weekend ? 7 : 5}, (_,i) => addDays(m,i)); };
+const blankDay = d => ({date:d, people:{}, trucks:{}, jobs:{}, drivers:{}});
+const dayOf = d => S.days[d] || blankDay(d);
+function whereIs(kind, id, day){
+  const c = (dayOf(day)[kind] || {})[id] || '';
+  return (c === 'off' || S.crews[c]) ? c : '';
+}
+function openCount(day){
+  return {
+    people: peopleList().filter(p => !whereIs('people', p.id, day)).length,
+    trucks: truckList().filter(t => !whereIs('trucks', t.id, day)).length
+  };
+}
+function hasAssignments(day){
+  const d = S.days[day]; if (!d) return false;
+  return Object.values(d.people||{}).some(Boolean) || Object.values(d.trucks||{}).some(Boolean);
+}
+function cdlWarning(day, crewId){
+  if (crewId === 'off') return '';
+  const d = dayOf(day), msgs = [];
+  const cdlTrucks = truckList().filter(t => t.cdl && d.trucks?.[t.id] === crewId);
+  if (!cdlTrucks.length) return '';
+  for (const t of cdlTrucks) { const p = driverOf(day, t.id); if (p && !S.people[p].cdl) msgs.push(`${t.name}: ${shortName(S.people[p].name)} has no CDL`); }
+  if (!msgs.length && !peopleList().some(p => p.cdl && d.people?.[p.id] === crewId)) msgs.push('CDL truck, no CDL driver');
+  return msgs.map(m => `<div class="warn">${esc(m)}</div>`).join('');
+}
+
+/* ---------- server (Google Sheet via Apps Script) ---------- */
+const chains = {}, pendingDay = {};
+let lastVersion = 0, pollTimer = null, pollBusy = false;
+function check(j){
+  if (j && j.error) throw Object.assign(new Error(j.error), {code: j.error});
+  return j || {};
+}
+async function api(method, payload){
+  if (method === 'GET') {
+    const qs = new URLSearchParams({code: teamCode, ...payload});
+    const r = await fetch(API_URL + '?' + qs, {redirect: 'follow'});
+    return check(await r.json());
+  }
+  const r = await fetch(API_URL, {method: 'POST', redirect: 'follow', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({code: teamCode, ...payload})});
+  return check(await r.json());
+}
+function applyDocs(docs){
+  for (const {key, data, deleted} of docs) {
+    const i = key.indexOf('/'), col = key.slice(0, i), id = key.slice(i + 1);
+    if (col === 'days') {
+      if (pendingDay[id]) continue;
+      if (deleted) delete S.days[id]; else S.days[id] = clone(data);
+    } else if (col === 'crews' || col === 'people' || col === 'trucks') {
+      if (deleted) delete S[col][id]; else S[col][id] = {id, ...clone(data)};
+    }
+  }
+}
+async function poll(full){
+  if (pollBusy || !teamCode) return;
+  pollBusy = true;
+  try {
+    const j = await api('GET', {since: full ? 0 : lastVersion});
+    if (full) { S.crews = {}; S.people = {}; S.trucks = {}; for (const d of Object.keys(S.days)) if (!pendingDay[d]) delete S.days[d]; }
+    applyDocs(j.docs || []);
+    lastVersion = Math.max(full ? 0 : lastVersion, j.version || 0);
+    if (mode !== 'live') { mode = 'live'; schedulePoll(15000); try { localStorage.setItem('sched-team-code', teamCode); } catch {} }
+    netErr = ''; S.loaded = {crews:true, people:true, trucks:true};
+    render();
+  } catch (e) {
+    if (e.code === 'bad_code') showGate('That team code didn’t work. Check with whoever set up the schedule.');
+    else if (mode !== 'live') { netErr = 'Can’t reach the schedule. Retrying…'; render(); setTimeout(() => poll(true), 8000); }
+    else { netErr = 'Can’t reach the schedule. Retrying…'; renderSync(); }
+  } finally { pollBusy = false; }
+}
+function schedulePoll(ms){
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(async () => { if (!document.hidden && mode === 'live') await poll(false); schedulePoll(15000); }, ms);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && mode === 'live') schedulePoll(0); });
+function showGate(msg){
+  teamCode = ''; gateMsg = msg || ''; mode = 'gate';
+  try { localStorage.removeItem('sched-team-code'); } catch {}
+  render();
+}
+function setSync(delta){ syncN += delta; renderSync(); }
+function fail(e){
+  if (e && e.code === 'bad_code') { showGate('The team code changed. Enter the new one.'); return; }
+  syncErr = 'Couldn’t save the last change. Reloading the latest schedule.';
+  render();
+  setTimeout(() => { syncErr = ''; poll(true); }, 2500);
+}
+function enqueue(key, fn){
+  setSync(1);
+  chains[key] = (chains[key] || Promise.resolve()).then(fn).then(() => schedulePoll(1500)).catch(fail).finally(() => setSync(-1));
+  return chains[key];
+}
+function writeDay(day, kind, payload){
+  pendingDay[day] = (pendingDay[day]||0) + 1;
+  enqueue('days/'+day, async () => {
+    try {
+      await api('POST', {ops: [{op: kind === 'set' ? 'set' : 'merge', key: 'days/'+day, data: kind === 'set' ? payload : Object.assign({date: day}, payload)}]});
+    } finally {
+      pendingDay[day]--;
+      if (!pendingDay[day]) {
+        try { const j = await api('GET', {key: 'days/'+day}); if (!pendingDay[day]) { applyDocs(j.docs || []); render(); } } catch {}
+      }
+    }
+  });
+}
+function writeDoc(path, op, data){
+  enqueue(path, () => api('POST', {ops: [{op: op === 'update' ? 'merge' : op, key: path, data: data || {}}]}));
+}
+function downloadBackup(){
+  const docs = {};
+  for (const col of ['crews','people','trucks']) for (const [id, o] of Object.entries(S[col])) { const {id: _, ...rest} = o; docs[col+'/'+id] = rest; }
+  for (const [d, o] of Object.entries(S.days)) docs['days/'+d] = o;
+  const blob = new Blob([JSON.stringify({format:'ohio-indiana-schedule-backup', saved: new Date().toISOString(), docs}, null, 1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `schedule-backup-${TODAY}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+async function restoreBackup(file){
+  let j = null;
+  try { j = JSON.parse(await file.text()); } catch {}
+  if (!j || j.format !== 'ohio-indiana-schedule-backup' || !j.docs) { await ask('That file isn’t a schedule backup.', 'OK', true); return; }
+  const keys = Object.keys(j.docs).filter(k => /^(crews|people|trucks|days)\/[A-Za-z0-9_.~:@+-]+$/.test(k));
+  if (!await ask(`Load ${keys.length} jobs, people, trucks and days from this backup? Matching items here get replaced.`, 'Load backup')) return;
+  setSync(1);
+  try {
+    for (let i = 0; i < keys.length; i += 40) await api('POST', {ops: keys.slice(i, i+40).map(k => ({op:'set', key:k, data:j.docs[k]}))});
+    await poll(true);
+  } catch (e) { fail(e); } finally { setSync(-1); }
+}
+
+/* ---------- mutations ---------- */
+function ensureDay(day){ if (!S.days[day]) S.days[day] = blankDay(day); const d = S.days[day]; d.people ||= {}; d.trucks ||= {}; d.jobs ||= {}; d.drivers ||= {}; return d; }
+function driverOf(day, tid){
+  const d = dayOf(day), p = d.drivers?.[tid];
+  return (p && S.people[p] && d.trucks?.[tid] && d.trucks[tid] !== 'off' && d.people?.[p] === d.trucks[tid]) ? p : '';
+}
+function applyPatch(day, patch){
+  const d = ensureDay(day), out = {};
+  for (const [k, m] of Object.entries(patch)) for (const [id, v] of Object.entries(m)) {
+    if ((d[k][id]||'') === v) continue;
+    d[k][id] = v; (out[k] ||= {})[id] = v;
+  }
+  if (Object.keys(out).length) writeDay(day, 'update', out);
+}
+function personPatch(pid, day, crew, patch){
+  patch.people[pid] = crew;
+  const d = dayOf(day);
+  for (const [t, p] of Object.entries(d.drivers||{})) if (p === pid && (d.trucks?.[t]||'') !== crew) patch.drivers[t] = '';
+}
+function placePerson(pid, day, crew){ const patch = {people:{}, drivers:{}}; personPatch(pid, day, crew, patch); applyPatch(day, patch); }
+function placeTruck(tid, day, crew, srcDay){
+  const patch = {trucks:{[tid]: crew}, people:{}, drivers:{}};
+  if (crew && crew !== 'off') {
+    let p = (srcDay && driverOf(srcDay, tid)) || S.trucks[tid]?.driver || '';
+    if (p && (!S.people[p] || whereIs('people', p, day) === 'off')) p = '';
+    if (p) {
+      personPatch(p, day, crew, patch);
+      for (const [t, q] of Object.entries(dayOf(day).drivers||{})) if (q === p && t !== tid) patch.drivers[t] = '';
+    }
+    patch.drivers[tid] = p;
+  } else patch.drivers[tid] = '';
+  applyPatch(day, patch);
+}
+function pair(pid, tid, day){
+  const crew = whereIs('trucks', tid, day);
+  if (!crew || crew === 'off') return;
+  const patch = {people:{}, drivers:{}};
+  personPatch(pid, day, crew, patch);
+  for (const [t, q] of Object.entries(dayOf(day).drivers||{})) if (q === pid && t !== tid) patch.drivers[t] = '';
+  patch.drivers[tid] = pid;
+  applyPatch(day, patch);
+}
+function place(it, day, crew){ if (it.kind === 'trucks') placeTruck(it.id, day, crew, it.day); else placePerson(it.id, day, crew); }
+function placeWeek(it, crew){
+  for (const d of weekDays()) { if (crew !== 'off' && whereIs(it.kind, it.id, d) === 'off') continue; place(it, d, crew); }
+}
+function setJob(day, crew, field, val){
+  const d = ensureDay(day);
+  d.jobs[crew] ||= {};
+  if ((d.jobs[crew][field]||'') === val) return;
+  d.jobs[crew][field] = val;
+  writeDay(day, 'update', {jobs: {[crew]: {[field]: val}}});
+}
+function compactDay(src, day){
+  const out = blankDay(day);
+  for (const k of ['people','trucks']) for (const [id,c] of Object.entries(src?.[k]||{})) if (c) out[k][id] = c;
+  for (const [t,p] of Object.entries(src?.drivers||{})) if (p) out.drivers[t] = p;
+  for (const [c,j] of Object.entries(src?.jobs||{})) if (j && (j.site||j.start||j.notes)) out.jobs[c] = {...j};
+  return out;
+}
+function replaceDay(day, body){ S.days[day] = body; writeDay(day, 'set', clone(body)); }
+async function loadDay(day){
+  return S.days[day] || null;
+}
+async function copyLastWeek(){
+  const days = weekDays();
+  if (days.some(hasAssignments) && !await ask('Replace this week’s assignments with last week’s?', 'Replace week')) return;
+  for (const d of days) {
+    const src = await loadDay(addDays(d,-7));
+    if (src) replaceDay(d, compactDay(src, d));
+  }
+  render();
+}
+async function copyPrevDay(){
+  let p = addDays(S.date,-1);
+  if (!S.weekend) while (isWeekend(p)) p = addDays(p,-1);
+  const src = await loadDay(p);
+  if (!src || !hasAssignmentsIn(src)) { await ask(`Nothing is scheduled on ${fmt(p,{weekday:'long', month:'short', day:'numeric'})} to copy.`, 'OK', true); return; }
+  if (hasAssignments(S.date) && !await ask(`Replace this day with ${fmt(p,{weekday:'long'})}’s schedule?`, 'Replace day')) return;
+  replaceDay(S.date, compactDay(src, S.date)); render();
+}
+const hasAssignmentsIn = d => Object.values(d.people||{}).some(Boolean) || Object.values(d.trucks||{}).some(Boolean);
+async function clearDay(){
+  if (!hasAssignments(S.date)) return;
+  if (!await ask(`Clear every assignment on ${fmt(S.date,{weekday:'long', month:'short', day:'numeric'})}?`, 'Clear day')) return;
+  replaceDay(S.date, blankDay(S.date)); render();
+}
+
+/* ---------- chips ---------- */
+const isSel = (kind,id,day) => S.sel && S.sel.kind === kind && S.sel.id === id && (S.sel.day||'') === (day||'');
+function ticks(kind, id){
+  return `<span class="ticks" aria-hidden="true">${weekDays().map(d => {
+    const c = whereIs(kind, id, d);
+    return `<i class="${c==='off'?'off':c?'on':''}"${c && c!=='off' ? ` style="--tc:${crewColor(c)}"` : ''}></i>`;
+  }).join('')}</span>`;
+}
+function personChip(p, day, crew, o={}){
+  const where = crew === 'off' ? 'off' : crew ? S.crews[crew]?.name : 'open';
+  return `<button type="button" class="chip person${isSel('people',p.id,day)?' sel':''}" data-chip data-kind="people" data-id="${esc(p.id)}" data-day="${day||''}" data-crew="${crew||''}"
+    title="${esc(p.name)}${p.role?', '+esc(p.role):''}" aria-label="${esc(p.name)}${day?', '+esc(where):''}">
+    <span class="ini" style="--c:${crew && crew!=='off' ? crewColor(crew) : 'var(--muted)'}">${esc(initials(p.name))}</span>
+    <span class="nm">${esc(o.full ? p.name : shortName(p.name))}</span>${p.cdl?'<span class="cdl">CDL</span>':''}${o.ticks?ticks('people',p.id):''}</button>`;
+}
+function truckChip(t, day, crew, o={}){
+  return `<button type="button" class="chip truck${isSel('trucks',t.id,day)?' sel':''}" data-chip data-kind="trucks" data-id="${esc(t.id)}" data-day="${day||''}" data-crew="${crew||''}"
+    style="--c:${crew ? crewColor(crew) : 'transparent'}" title="${esc(t.name)}${t.kind?', '+esc(t.kind):''}${t.cdl?', needs CDL':''}">
+    ${TRUCK_SVG}<span class="unit">${esc(t.name)}</span>${o.kind && t.kind?`<span class="kind">${esc(t.kind)}</span>`:''}${o.ticks?ticks('trucks',t.id):''}</button>`;
+}
+const matchQ = n => !S.q || String(n||'').toLowerCase().includes(S.q);
+
+/* ---------- render ---------- */
+let deferred = false;
+const busy = el => { const a = document.activeElement; return a && el.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName); };
+function render(){
+  document.body.classList.toggle('picking', !!S.sel);
+  renderTop(); renderRail(); renderPick();
+  if (busy($('#main'))) { deferred = true; return; }
+  deferred = false; renderMain();
+  if ($('#manage').open && !busy($('#manageBody'))) renderManage();
+}
+function renderSync(){
+  const el = $('#sync'); if (!el) return;
+  let t, bad = false;
+  if (mode === 'connecting') t = 'Connecting…';
+  else if (mode === 'gate') t = '';
+  else if (syncErr || netErr) { t = syncErr || netErr; bad = true; }
+  else t = syncN > 0 ? 'Saving…' : 'All changes saved';
+  el.textContent = t; el.classList.toggle('bad', bad);
+}
+function renderTop(){
+  const bs = bases();
+  if (S.base !== 'all' && !bs.includes(S.base) && S.loaded.crews) S.base = 'all';
+  const days = weekDays();
+  const label = S.view === 'week'
+    ? `${fmt(days[0],{month:'short', day:'numeric'})} – ${fmt(days[days.length-1],{month:'short', day:'numeric'})}`
+    : fmt(S.date,{weekday:'short', month:'short', day:'numeric'});
+  $('#top').innerHTML = `
+    <span class="brand">Ohio/Indiana Schedule</span>
+    <span class="seg" role="group" aria-label="View"><button data-view="week" aria-pressed="${S.view==='week'}">Week</button><button data-view="day" aria-pressed="${S.view==='day'}">Day</button></span>
+    <span class="nav"><button class="ib" data-step="-1" aria-label="Previous ${S.view}">‹</button><span class="lbl">${esc(label)}</span><button class="ib" data-step="1" aria-label="Next ${S.view}">›</button><button class="ib" data-today>Today</button></span>
+    ${bs.length ? `<select id="base" aria-label="Show jobs from"><option value="all">All bases</option>${bs.map(b=>`<option${b===S.base?' selected':''}>${esc(b)}</option>`).join('')}</select>` : ''}
+    ${S.view==='week' ? `<label class="chk"><input type="checkbox" id="wkend"${S.weekend?' checked':''}> Weekends</label>` : ''}
+    <span class="spacer"></span>
+    ${!S.readOnly ? (S.view==='week'
+      ? `<button class="ib" data-act="copyweek">Copy last week</button>`
+      : `<button class="ib" data-act="copyday">Copy previous day</button><button class="ib" data-act="clearday">Clear day</button>`) : ''}
+    ${!S.readOnly ? `<button class="ib primary" data-act="manage">Jobs &amp; roster</button>` : ''}
+    <span class="sync" id="sync" role="status"></span>`;
+  renderSync();
+}
+function renderRail(){
+  const ro = S.readOnly;
+  let h = '';
+  const ppl = peopleList().filter(p => matchQ(p.name) || matchQ(p.role));
+  const trk = truckList().filter(t => matchQ(t.name) || matchQ(t.kind));
+  const zone = $('#railBody');
+  if (S.view === 'week') {
+    zone.dataset.day = ''; zone.dataset.crew = '';
+    h += `<p class="note">${ro ? 'Bars show each day this week.' : 'Drag onto a day, or tap a name then tap a box. Drop on a job name to fill the whole week, or onto a truck to make them its driver. Bars show each day this week.'}</p>`;
+    h += `<h2><span>People</span><span>${ppl.length}</span></h2><div class="stack">${ppl.map(p => personChip(p,'','',{full:true,ticks:true})).join('') || emptyRoster('people')}</div>`;
+    h += `<h2><span>Trucks</span><span>${trk.length}</span></h2><div class="stack">${trk.map(t => truckChip(t,'','',{kind:true,ticks:true})).join('') || emptyRoster('trucks')}</div>`;
+  } else {
+    zone.dataset.day = S.date; zone.dataset.crew = '';
+    const op = ppl.filter(p => !whereIs('people',p.id,S.date));
+    const ot = trk.filter(t => !whereIs('trucks',t.id,S.date));
+    h += `<p class="note">Open on ${esc(fmt(S.date,{weekday:'long'}))}. ${ro ? '' : 'Drop someone here to take them off a job. Drop a person onto a truck to make them its driver.'}</p>`;
+    h += `<h2><span>People open</span><span>${op.length}</span></h2><div class="stack">${op.map(p => personChip(p,S.date,'',{full:true})).join('') || (peopleList().length ? '<p class="note">Everyone is placed.</p>' : emptyRoster('people'))}</div>`;
+    h += `<h2><span>Trucks open</span><span>${ot.length}</span></h2><div class="stack">${ot.map(t => truckChip(t,S.date,'',{kind:true})).join('') || (truckList().length ? '<p class="note">Every truck is out.</p>' : emptyRoster('trucks'))}</div>`;
+  }
+  zone.innerHTML = h;
+}
+function emptyRoster(kind){
+  if (S.q) return '<p class="note">No matches.</p>';
+  return `<p class="note">No ${kind} yet.${S.readOnly ? '' : ` <button class="ib" data-act="manage" data-tab="${kind}">Add ${kind}</button>`}</p>`;
+}
+function renderMain(){
+  const m = $('#main');
+  if (mode === 'setup') { m.innerHTML = `<div class="empty"><h2>Connect this page</h2><p>This page isn't hooked up to the Google Sheet yet. Open index.html, find API_URL near the top of the script, and paste your Apps Script web app URL between the quotes.</p></div>`; return; }
+  if (mode === 'gate') {
+    m.innerHTML = `<div class="empty"><h2>Enter the team code</h2><p>${esc(gateMsg || 'Ask whoever set up the schedule for the code. You only need to enter it once on this device.')}</p>
+      <div class="addrow"><input id="codeIn" type="password" autocomplete="current-password" placeholder="Team code" aria-label="Team code"><button class="ib primary" data-code>Open schedule</button></div></div>`;
+    setTimeout(() => $('#codeIn')?.focus(), 0); return;
+  }
+  if (!S.loaded.crews) { m.innerHTML = `<p class="note">${netErr ? esc(netErr) : 'Loading schedule…'}</p>`; return; }
+  if (!crewList().length) {
+    m.innerHTML = `<div class="empty"><h2>Set up your jobs</h2><p>Add your jobs, then your people and trucks. After that, drag them onto days to build the schedule.</p>${S.readOnly ? '<p>Ask the owner of this page to add jobs.</p>' : '<button class="ib primary" data-act="manage" data-tab="crews">Add jobs</button>'}</div>`;
+    return;
+  }
+  m.innerHTML = S.view === 'week' ? weekHTML() : dayHTML();
+}
+function cellHTML(day, crewId){
+  const d = dayOf(day);
+  const job = (d.jobs||{})[crewId] || {};
+  const ts = truckList().filter(t => d.trucks?.[t.id] === crewId);
+  const ps = peopleList().filter(p => d.people?.[p.id] === crewId);
+  let h = '';
+  if (job.site || job.start) h += `<div class="job" title="${esc(job.site||'')}">${job.start?`<b>${esc(ftime(job.start))}</b> `:''}${esc(job.site||'')}</div>`;
+  h += chipsFor(day, crewId, ts, ps, false);
+  h += cdlWarning(day, crewId);
+  return h;
+}
+function chipsFor(day, crew, ts, ps, full){
+  const used = new Set();
+  const h = ts.map(t => {
+    const p = crew !== 'off' && driverOf(day, t.id);
+    if (!p) return truckChip(t, day, crew, {kind: full});
+    used.add(p);
+    return `<span class="pair" style="--c:${crewColor(crew)}" title="${esc(S.people[p].name)} drives ${esc(t.name)}">${truckChip(t, day, crew, {kind: full})}${personChip(S.people[p], day, crew, {full})}</span>`;
+  }).join('');
+  return h + ps.filter(p => !used.has(p.id)).map(p => personChip(p, day, crew, {full})).join('');
+}
+function weekHTML(){
+  const days = weekDays(), crews = visibleCrews();
+  let h = `<div class="wrap"><div class="wk" style="--n:${days.length}"><div class="corner"></div>`;
+  h += days.map(d => { const o = openCount(d);
+    return `<button class="dh${d===TODAY?' today':''}" data-goday="${d}" title="Open ${esc(fmt(d,{weekday:'long'}))}"><span class="dow">${esc(fmt(d,{weekday:'short'}))}</span><span class="dt">${esc(fmt(d,{month:'short', day:'numeric'}))}</span><span class="open">${o.people} ${o.people===1?'person':'people'} open, ${o.trucks} ${o.trucks===1?'truck':'trucks'}</span></button>`; }).join('');
+  for (const c of [...crews, OFF]) {
+    const off = c.id === 'off';
+    h += `<div class="crewlab zone${off?' offrow':''}" data-zone data-week="1" data-day="" data-crew="${esc(c.id)}" style="--c:${crewColor(c.id)}"><b>${esc(c.name)}</b>${c.base?`<span>${esc(c.base)}</span>`:''}<small>Drop here for the whole week</small></div>`;
+    h += days.map(d => `<div class="cell zone${off?' offrow':d===TODAY?' todaycol':''}" data-zone data-day="${d}" data-crew="${esc(c.id)}">${cellHTML(d, c.id)}</div>`).join('');
+  }
+  h += '</div></div>';
+  if (!crews.length) h = `<p class="note">No jobs at ${esc(S.base)}. Pick another base above.</p>` + h;
+  return h;
+}
+function dayHTML(){
+  const day = S.date, d = dayOf(day), o = openCount(day), ro = S.readOnly;
+  let h = `<div class="dayhead"><h1>${esc(fmt(day,{weekday:'long', month:'long', day:'numeric'}))}</h1><p>${o.people} ${o.people===1?'person':'people'} and ${o.trucks} ${o.trucks===1?'truck':'trucks'} still open</p></div><div class="cards">`;
+  for (const c of visibleCrews()) {
+    const job = (d.jobs||{})[c.id] || {};
+    const ts = truckList().filter(t => d.trucks?.[t.id] === c.id);
+    const ps = peopleList().filter(p => d.people?.[p.id] === c.id);
+    h += `<section class="card" style="--c:${crewColor(c.id)}">
+      <header><h3>${esc(c.name)}</h3>${c.base?`<span>${esc(c.base)}</span>`:''}</header>
+      <div class="fields">
+        <label>Site<input type="text" data-job="site" data-crew="${esc(c.id)}" value="${esc(job.site||'')}" placeholder="Address or location"${ro?' disabled':''}></label>
+        <label>Start<input type="time" data-job="start" data-crew="${esc(c.id)}" value="${esc(job.start||'')}"${ro?' disabled':''}></label>
+        <label class="wide">Notes<input type="text" data-job="notes" data-crew="${esc(c.id)}" value="${esc(job.notes||'')}" placeholder="Scope, gate code, contact"${ro?' disabled':''}></label>
+      </div>
+      ${cdlWarning(day, c.id)}
+      <div class="zone" data-zone data-day="${day}" data-crew="${esc(c.id)}">${(ts.length||ps.length) ? chipsFor(day, c.id, ts, ps, true) : '<span class="empty-hint">Drop people and trucks here</span>'}</div>
+    </section>`;
+  }
+  const ts = truckList().filter(t => d.trucks?.[t.id] === 'off');
+  const ps = peopleList().filter(p => d.people?.[p.id] === 'off');
+  h += `<section class="card off" style="--c:var(--off)"><header><h3>Off / shop</h3><span>PTO, sick, truck down</span></header>
+    <div class="zone" data-zone data-day="${day}" data-crew="off">${ts.map(t=>truckChip(t,day,'off',{kind:true})).join('')}${ps.map(p=>personChip(p,day,'off',{full:true})).join('') || (ts.length?'':'<span class="empty-hint">Nobody off</span>')}</div></section>`;
+  return h + '</div>';
+}
+function renderPick(){
+  const b = $('#pickbar');
+  if (!S.sel) { b.hidden = true; return; }
+  const item = S.sel.kind === 'people' ? S.people[S.sel.id] : S.trucks[S.sel.id];
+  if (!item) { S.sel = null; b.hidden = true; return; }
+  b.hidden = false;
+  b.innerHTML = `<span>Moving <b>${esc(item.name)}</b>. Tap a job${S.view==='week'?' and day':''}, a truck, Off, or the roster.</span><button data-cancel>Cancel</button>`;
+}
+
+/* ---------- roster manager ---------- */
+function tabsHTML(tab){
+  return `<div class="tabs" role="group">${['crews','people','trucks','backup'].map(t => `<button data-mtab="${t}" aria-pressed="${t===tab}">${{crews:'Jobs', people:'People', trucks:'Trucks', backup:'Backup'}[t]}</button>`).join('')}</div>`;
+}
+function renderManage(){
+  const tab = S.mtab;
+  if (tab === 'backup') {
+    $('#manageBody').innerHTML = tabsHTML(tab) + `
+      <p class="note">Download a copy of every job, person, truck and day. Good to grab now and then.</p>
+      <button class="ib" data-backup>Download backup</button>
+      <p class="note" style="margin-top:18px">Restore loads a backup file into the schedule. Matching jobs, people, trucks and days get replaced.</p>
+      <label class="ib" style="display:inline-block">Restore from a file<input type="file" id="restore" accept=".json,application/json" class="sr"></label>`;
+    return;
+  }
+  $('#bases').innerHTML = bases().map(b => `<option>${esc(b)}</option>`).join('');
+  let rows = '';
+  if (tab === 'crews') rows = crewList().map((c,i,a) => `<div class="mrow" data-path="crews/${esc(c.id)}">
+      <button class="sw" style="--c:${esc(c.color||PALETTE[0])}" data-cycle aria-label="Change color of ${esc(c.name)}" title="Change color"></button>
+      <input type="text" data-f="name" value="${esc(c.name)}" aria-label="Job name">
+      <input type="text" data-f="base" value="${esc(c.base||'')}" placeholder="Base, e.g. Toledo" list="bases" aria-label="Base">
+      <button class="sm" data-move="-1"${i===0?' disabled':''} aria-label="Move up">↑</button><button class="sm" data-move="1"${i===a.length-1?' disabled':''} aria-label="Move down">↓</button>
+      <button class="sm del" data-del>Remove</button></div>`).join('');
+  if (tab === 'people') rows = peopleList().map(p => `<div class="mrow" data-path="people/${esc(p.id)}">
+      <input type="text" data-f="name" value="${esc(p.name)}" aria-label="Name">
+      <input type="text" data-f="role" value="${esc(p.role||'')}" placeholder="Role" list="roles" aria-label="Role">
+      <label class="chk"><input type="checkbox" data-f="cdl"${p.cdl?' checked':''}> CDL</label>
+      <button class="sm del" data-del>Remove</button></div>`).join('');
+  if (tab === 'trucks') rows = truckList().map(t => `<div class="mrow" data-path="trucks/${esc(t.id)}">
+      <input type="text" data-f="name" value="${esc(t.name)}" aria-label="Unit number or name">
+      <input type="text" data-f="kind" value="${esc(t.kind||'')}" placeholder="Type" list="kinds" aria-label="Truck type">
+      <select data-f="driver" aria-label="Usual driver"><option value="">No usual driver</option>${peopleList().map(p => `<option value="${esc(p.id)}"${p.id===t.driver?' selected':''}>${esc(p.name)}</option>`).join('')}</select>
+      <label class="chk"><input type="checkbox" data-f="cdl"${t.cdl?' checked':''}> Needs CDL</label>
+      <button class="sm del" data-del>Remove</button></div>`).join('');
+  const noun = {crews:'job', people:'person', trucks:'truck'}[tab];
+  const ph = {crews:'Job name, e.g. Butler', people:'Full name', trucks:'Unit number, e.g. V-12'}[tab];
+  const bulkHint = {crews:'One job per line. Add a base after a comma: "Butler, Cincinnati"', people:'One person per line. Add a role after a comma: "Mike Ross, Foreman"', trucks:'One truck per line. Add a type after a comma: "V-14, Vac truck"'}[tab];
+  $('#manageBody').innerHTML = `
+    ${tabsHTML(tab)}
+    ${rows || `<p class="note">No ${tab} yet.</p>`}
+    <div class="addrow"><input id="addOne" placeholder="${esc(ph)}" aria-label="New ${noun}"><button class="ib primary" data-add>Add ${noun}</button></div>
+    <details class="bulk"><summary>Paste a list</summary><textarea id="bulk" placeholder="${esc(bulkHint)}"></textarea><button class="ib" data-bulk>Add all</button></details>`;
+}
+function addItems(lines){
+  const tab = S.mtab; let order = Date.now();
+  for (const raw of lines) {
+    const [name, extra] = raw.split(/,(.*)/s).map(s => (s||'').trim());
+    if (!name) continue;
+    const id = uid(); let body;
+    if (tab === 'crews') body = {name, base: extra||'', color: PALETTE[crewList().length % PALETTE.length], order: order++};
+    else if (tab === 'people') body = {name, role: extra||'', cdl:false};
+    else body = {name, kind: extra||'', cdl:false};
+    S[tab][id] = {id, ...body};
+    writeDoc(`${tab}/${id}`, 'set', body);
+  }
+  render(); renderManage();
+}
+function editField(path, f, val){
+  const [col, id] = path.split('/');
+  if (!S[col][id]) return;
+  if (f === 'name' && !String(val).trim()) { renderManage(); return; }
+  S[col][id][f] = val;
+  writeDoc(path, 'update', {[f]: val});
+  render();
+}
+
+/* ---------- ask dialog ---------- */
+function ask(msg, yes, infoOnly){
+  return new Promise(res => {
+    const d = $('#ask'); $('#askMsg').textContent = msg; $('#askYes').textContent = yes; $('#askNo').hidden = !!infoOnly;
+    const done = v => { d.close(); $('#askYes').onclick = $('#askNo').onclick = null; d.oncancel = null; res(v); };
+    $('#askYes').onclick = () => done(true); $('#askNo').onclick = () => done(false); d.oncancel = e => { e.preventDefault(); done(false); };
+    d.showModal();
+  });
+}
+
+/* ---------- interactions ---------- */
+const itemOf = el => ({kind: el.dataset.kind, id: el.dataset.id, day: el.dataset.day || '', crew: el.dataset.crew || ''});
+const pairable = el => (el && el.matches('.chip.truck') && el.dataset.day && el.dataset.crew && el.dataset.crew !== 'off') ? el : null;
+function drop(it, zone, truckEl){
+  if (truckEl && it.kind === 'people') { pair(it.id, truckEl.dataset.id, truckEl.dataset.day); return; }
+  if (!zone) return;
+  const zc = zone.dataset.crew || '', zd = zone.dataset.day || '';
+  if (zone.dataset.week) { placeWeek(it, zc); return; }                  // job name: whole week
+  if (!zd) { if (it.day) place(it, it.day, ''); return; }               // week roster: take off that day
+  if (it.day === zd && it.crew === zc) {                                 // same job: unpair a driver
+    if (it.kind === 'people') { const patch = {drivers:{}}; for (const [t,p] of Object.entries(dayOf(zd).drivers||{})) if (p === it.id) patch.drivers[t] = ''; applyPatch(zd, patch); }
+    return;
+  }
+  place(it, zd, zc);
+}
+let suppressClick = false;
+document.addEventListener('click', async e => {
+  if (suppressClick) { suppressClick = false; return; }
+  const t = e.target;
+  if (t.closest('[data-cancel]')) { S.sel = null; render(); return; }
+  if (t.closest('[data-code]')) { submitCode(); return; }
+  const v = t.closest('[data-view]'); if (v) { S.view = v.dataset.view; S.sel = null; savePrefs(); render(); return; }
+  const st = t.closest('[data-step]'); if (st) { S.date = addDays(S.date, Number(st.dataset.step) * (S.view==='week' ? 7 : 1)); if (S.view==='day' && !S.weekend) { while (isWeekend(S.date)) S.date = addDays(S.date, Number(st.dataset.step)); } onDateChange(); return; }
+  if (t.closest('[data-today]')) { S.date = TODAY; onDateChange(); return; }
+  const g = t.closest('[data-goday]'); if (g) { S.date = g.dataset.goday; S.view = 'day'; S.sel = null; savePrefs(); render(); return; }
+  const a = t.closest('[data-act]');
+  if (a) {
+    const act = a.dataset.act;
+    if (act === 'manage') { if (a.dataset.tab) S.mtab = a.dataset.tab; renderManage(); $('#manage').showModal(); }
+    if (act === 'copyweek') copyLastWeek();
+    if (act === 'copyday') copyPrevDay();
+    if (act === 'clearday') clearDay();
+    return;
+  }
+  if (S.readOnly) return;
+  const chip = t.closest('[data-chip]');
+  const zone = t.closest('[data-zone]');
+  if (chip && S.sel && S.sel.kind === 'people' && pairable(chip)) { drop(S.sel, null, chip); S.sel = null; render(); return; }
+  if (chip) {
+    const it = itemOf(chip);
+    const chipZone = chip.closest('[data-zone]');
+    if (S.sel && chipZone && (S.sel.day !== (chipZone.dataset.day||'') || S.sel.crew !== (chipZone.dataset.crew||'')) && !(S.sel.kind===it.kind && S.sel.id===it.id && S.sel.day===it.day)) {
+      drop(S.sel, chipZone); S.sel = null;
+    } else {
+      S.sel = isSel(it.kind, it.id, it.day) ? null : it;
+    }
+    render(); return;
+  }
+  if (zone && S.sel) { drop(S.sel, zone); S.sel = null; render(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.sel) { S.sel = null; render(); } });
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'restore') { const f = t.files?.[0]; t.value = ''; if (f) restoreBackup(f); return; }
+  if (t.id === 'base') { S.base = t.value; savePrefs(); render(); return; }
+  if (t.id === 'wkend') { S.weekend = t.checked; savePrefs(); onDateChange(); return; }
+  if (t.dataset.job) { setJob(S.date, t.dataset.crew, t.dataset.job, t.value.trim()); return; }
+  const row = t.closest('.mrow');
+  if (row && t.dataset.f) editField(row.dataset.path, t.dataset.f, t.type === 'checkbox' ? t.checked : t.value.trim());
+});
+$('#main').addEventListener('focusout', () => { setTimeout(() => { if (deferred && !busy($('#main'))) render(); }, 0); });
+$('#main').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.dataset.job) e.target.blur();
+  if (e.key === 'Enter' && e.target.id === 'codeIn') submitCode();
+});
+function submitCode(){
+  const v = $('#codeIn')?.value.trim(); if (!v) return;
+  teamCode = v; gateMsg = ''; mode = 'connecting'; $('#main').innerHTML = '<p class="note">Loading schedule…</p>';
+  poll(true).then(() => { if (mode === 'live') schedulePoll(15000); });
+}
+$('#q').addEventListener('input', e => { S.q = e.target.value.trim().toLowerCase(); renderRail(); });
+
+/* manage dialog */
+$('#manage').addEventListener('click', e => {
+  const t = e.target;
+  if (t.closest('[data-close]')) { $('#manage').close(); return; }
+  if (t.closest('[data-backup]')) { downloadBackup(); return; }
+  const tb = t.closest('[data-mtab]'); if (tb) { S.mtab = tb.dataset.mtab; renderManage(); return; }
+  if (t.closest('[data-add]')) { const i = $('#addOne'); if (i.value.trim()) { addItems([i.value]); $('#addOne').focus(); } return; }
+  if (t.closest('[data-bulk]')) { addItems($('#bulk').value.split('\n')); return; }
+  const row = t.closest('.mrow'); if (!row) return;
+  const [col, id] = row.dataset.path.split('/');
+  if (t.closest('[data-cycle]')) { const cur = S.crews[id].color; editField(row.dataset.path, 'color', PALETTE[(PALETTE.indexOf(cur)+1) % PALETTE.length]); renderManage(); return; }
+  const mv = t.closest('[data-move]');
+  if (mv) {
+    const list = crewList(), i = list.findIndex(c => c.id === id), j = i + Number(mv.dataset.move);
+    if (j < 0 || j >= list.length) return;
+    list.forEach((c,k) => { if (c.order !== k) { c.order = k; writeDoc('crews/'+c.id, 'update', {order:k}); } });
+    const a = list[i], b = list[j]; [a.order, b.order] = [j, i];
+    writeDoc('crews/'+a.id, 'update', {order:a.order}); writeDoc('crews/'+b.id, 'update', {order:b.order});
+    render(); renderManage(); return;
+  }
+  const del = t.closest('[data-del]');
+  if (del) {
+    if (!del.classList.contains('armed')) { del.classList.add('armed'); del.textContent = 'Confirm remove'; setTimeout(() => { if (del.isConnected) { del.classList.remove('armed'); del.textContent = 'Remove'; } }, 3500); return; }
+    delete S[col][id]; writeDoc(row.dataset.path, 'delete');
+    if (S.sel && S.sel.id === id) S.sel = null;
+    render(); renderManage();
+  }
+});
+$('#manage').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'addOne') { e.preventDefault(); if (e.target.value.trim()) addItems([e.target.value]); setTimeout(() => $('#addOne')?.focus(), 0); } });
+$('#manage').addEventListener('close', () => render());
+
+/* pointer drag (mouse and pen; touch uses tap-to-move) */
+let dg = null;
+document.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch' || e.button !== 0 || S.readOnly) return;
+  const chip = e.target.closest('[data-chip]'); if (!chip) return;
+  dg = {it: itemOf(chip), x: e.clientX, y: e.clientY, chip, on:false, hot:null, tk:null};
+});
+document.addEventListener('pointermove', e => {
+  if (!dg) return;
+  if (!dg.on) {
+    if (Math.hypot(e.clientX-dg.x, e.clientY-dg.y) < 5) return;
+    dg.on = true; S.sel = null; renderPick(); document.body.classList.remove('picking');
+    dg.ghost = dg.chip.cloneNode(true); dg.ghost.classList.add('ghost'); dg.ghost.classList.remove('sel');
+    document.body.appendChild(dg.ghost); document.body.classList.add('dragging'); dg.chip.classList.add('lifted');
+  }
+  e.preventDefault();
+  dg.ghost.style.left = e.clientX + 'px'; dg.ghost.style.top = e.clientY + 'px';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const tk = dg.it.kind === 'people' ? pairable(el?.closest('.chip')) : null;
+  if (tk !== dg.tk) { dg.tk?.classList.remove('hot'); tk?.classList.add('hot'); dg.tk = tk; }
+  const z = tk ? null : (el?.closest('[data-zone]') || null);
+  if (z !== dg.hot) { dg.hot?.classList.remove('hot'); z?.classList.add('hot'); dg.hot = z; }
+  const m = $('#main'), r = m.getBoundingClientRect();
+  if (e.clientY > r.bottom - 40) m.scrollBy(0, 14); else if (e.clientY < r.top + 40) m.scrollBy(0, -14);
+});
+function endDrag(apply){
+  const d = dg; dg = null; if (!d || !d.on) return;
+  suppressClick = true; setTimeout(() => { suppressClick = false; }, 60);
+  d.ghost.remove(); document.body.classList.remove('dragging'); d.chip.classList.remove('lifted'); d.hot?.classList.remove('hot'); d.tk?.classList.remove('hot');
+  if (apply && (d.hot || d.tk)) drop(d.it, d.hot, d.tk);
+  render();
+}
+document.addEventListener('pointerup', () => endDrag(true));
+document.addEventListener('pointercancel', () => endDrag(false));
+
+/* ---------- start ---------- */
+function onDateChange(){ S.sel = null; render(); }
+async function init(){
+  if (!API_URL || API_URL.startsWith('PASTE')) { mode = 'setup'; render(); return; }
+  if (!teamCode) { showGate(''); return; }
+  render();
+  await poll(true);
+  if (mode === 'live') schedulePoll(15000);
+}
+init();
+})();
+</script>
+</body>
+</html>
